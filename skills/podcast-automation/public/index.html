@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的播客</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .subtitle { color: #888; font-size: 1.1rem; }
+        .episode {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .episode:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15);
+        }
+        .episode-date {
+            color: #667eea;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .episode-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .episode-content {
+            color: #aaa;
+            font-size: 0.95rem;
+            margin-bottom: 16px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        audio {
+            width: 100%;
+            height: 40px;
+            border-radius: 8px;
+        }
+        .empty {
+            text-align: center;
+            padding: 80px 20px;
+            color: #666;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+        footer {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎙️ 我的播客</h1>
+            <p class="subtitle">每日自动生成的声音内容</p>
+        </header>
+        
+        <div id="episodes-container">
+            <div class="loading">加载中...</div>
+        </div>
+        
+        <footer>
+            <p>使用 Qwen3-TTS 声音克隆技术自动生成</p>
+        </footer>
+    </div>
+    
+    <script>
+        async function loadEpisodes() {
+            const container = document.getElementById('episodes-container');
+            
+            try {
+                const response = await fetch('content/episodes/index.json');
+                const episodes = await response.json();
+                
+                if (episodes.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty">
+                            <p>暂无播客内容</p>
+                            <p style="font-size: 0.875rem; margin-top: 8px;">
+                                在 Notion 中添加内容并标记为「待发布」
+                            </p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = episodes.map(ep => `
+                    <article class="episode">
+                        <div class="episode-date">${formatDate(ep.date)} · ${ep.duration}</div>
+                        <h2 class="episode-title">${escapeHtml(ep.title)}</h2>
+                        <p class="episode-content">${escapeHtml(ep.content)}</p>
+                        <audio controls preload="metadata">
+                            <source src="${ep.audio}" type="audio/mpeg">
+                            您的浏览器不支持音频播放
+                        </audio>
+                    </article>
+                `).join('');
+                
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="empty">
+                        <p>加载失败</p>
+                        <p style="font-size: 0.875rem; margin-top: 8px;">${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        loadEpisodes();
+    </script>
+</body>
+</html>

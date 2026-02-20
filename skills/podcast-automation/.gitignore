@@ -1,0 +1,17 @@
+# 环境变量
+.env
+.env.local
+
+# 音频文件（大文件）
+public/audio/*.mp3
+public/audio/*.wav
+voice-sample.wav
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# 系统文件
+.DS_Store
