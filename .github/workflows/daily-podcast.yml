@@ -1,24 +1,17 @@
  name: Daily Podcast Generator
 
-     on:
-     schedule:
-      - cron: '0 0 * * *'
-     workflow_dispatch:
+  on:
+    workflow_dispatch:
 
-     jobs:
-     generate:
+  jobs:
+    generate:
       runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v4
-
-        - name: Setup Python
-          uses: actions/setup-python@v5
+        - uses: actions/setup-python@v5
           with:
             python-version: '3.11'
-
-        - name: Install dependencies
-          run: pip install dashscope requests python-dotenv
-
+        - run: pip install dashscope requests python-dotenv
         - name: Generate podcast
           env:
             NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
@@ -27,11 +20,11 @@
           run: |
             cd skills/podcast-automation
             python scripts/generate-podcast.py
-
-        - name: Commit and push
+        - name: Commit changes
           run: |
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add skills/podcast-automation/content/ skills/podcast-automation/public/audio/
-            git diff --quiet && git diff --staged --quiet || git commit -m "Add podcast for $(date +%Y-%m-%d)"
+            git add .
+            git commit -m "Add podcast" || exit 0
             git push
+
